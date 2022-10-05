@@ -1,0 +1,79 @@
+helper_vm_ip: 192.168.86.180
+bootstrap_ignition_url: "http://{{helper_vm_ip}}:8080/ignition/bootstrap.ign"
+config:
+  provider: vsphere
+  base_domain: example.com
+  cluster_name: ocp4
+  fips: false
+  #networkType: OVNKubernetes
+  #isolationMode: Multitenant
+  installer_ssh_key: "{{ lookup('file', '~/.ssh/ocp4.pub') }}"
+  pull_secret: "{{ lookup('file', '~/pullsecret') }}"
+  master_schedulable: false
+vcenter:
+  ip: 192.168.86.100
+  datastore: datastore1
+  network: VM Network
+  service_account_username: administrator@vsphere.local
+  service_account_password: something
+  admin_username: administrator@vsphere.local
+  admin_password: something
+  datacenter: dc
+  folder_absolute_path:
+  vm_power_state: poweredon
+  template_name: rhcos-vmware
+  hw_version: 15
+download:
+  clients_url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest
+  dependencies_url: https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/latest/latest
+  govc: https://github.com/vmware/govmomi/releases/download/v0.27.4
+bootstrap_vms:
+  - { name: "bootstrap", macaddr: "00:50:56:a8:aa:a1", ipaddr: "192.168.86.181", cpu: 4, ram: 16384}
+master_vms:
+  - { name: "master0", macaddr: "00:50:56:a8:aa:a2", ipaddr: "192.168.86.182", cpu: 4, ram: 16384}
+  - { name: "master1", macaddr: "00:50:56:a8:aa:a3", ipaddr: "192.168.86.183", cpu: 4, ram: 16384}
+  - { name: "master2", macaddr: "00:50:56:a8:aa:a4", ipaddr: "192.168.86.184", cpu: 4, ram: 16384}
+worker_vms:
+  - { name: "worker0", macaddr: "00:50:56:a8:aa:a5", ipaddr: "192.168.86.185", cpu: 4, ram: 16384}
+  - { name: "worker1", macaddr: "00:50:56:a8:aa:a6", ipaddr: "192.168.86.186", cpu: 4, ram: 16384}
+  - { name: "worker2", macaddr: "00:50:56:a8:aa:a7", ipaddr: "192.168.86.187", cpu: 4, ram: 16384}
+static_ip:
+  gateway: 192.168.86.1
+  netmask: 255.255.255.0
+  dns: "{{ helper_vm_ip }}"
+  network_interface_name: ens192
+network_modifications:
+  enabled: true
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  serviceNetwork:
+  - cidr: 172.30.0.0/16
+  machineNetwork:
+  - cidr: 192.168.29.0/24
+proxy:
+  enabled: false
+  http_proxy: http://helper.ocp4.example.com:3129
+  https_proxy: http://helper.ocp4.example.com:3129
+  no_proxy: example.com
+  cert_content: |
+    -----BEGIN CERTIFICATE-----
+        <certficate content>
+    -----END CERTIFICATE-----
+registry:
+  enabled: false
+  product_repo: openshift-release-dev
+  product_release_name: ocp-release
+  product_release_version: 4.4.0-x86_64
+  username: ansible
+  password: ansible
+  email: user@awesome.org
+  cert_content:
+  host: registry.ocp4.example.com
+  port: 5000
+  repo: ocp4/openshift4
+ntp:
+  custom: false
+  ntp_server_list:
+    - 0.rhel.pool.ntp.org
+    - 1.rhel.pool.ntp.org

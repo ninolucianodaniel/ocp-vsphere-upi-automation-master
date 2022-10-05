@@ -1,0 +1,6 @@
+  - name: Downloading OpenShift installer raw image
+    become: true
+    get_url:
+      url: "{{ download.raw }}"
+      dest: /var/www/html/install/rhcos.raw.gz
+      mode: 0555
